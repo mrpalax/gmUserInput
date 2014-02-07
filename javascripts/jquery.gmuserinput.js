@@ -69,6 +69,27 @@
 	};
 	
 	/**
+	 * Removes a marker from the map and from the internal list of markers.
+	 * @param id of the marker to remove
+	 * @returns true if the marker is removed
+	 */
+	var _removeMarkerById = function( id ) {
+		var removed = false;
+		var i = 0;
+		for(; i<this.gmMarkers.length; i++ ) {
+			if( this.gmMarkers[ i ].item.uid == id ) {
+				this.gmMarkers[ i ].setMap( null );
+				removed = true;
+				break;
+			}
+		}
+		if( removed ) {
+			this.gmMarkers.splice( i, 1 );
+		}
+		return removed;
+	};
+	
+	/**
 	 * Calculates coordinates from an (x,y) screen point
 	 * Expect:
 	 * - evt: drop event for viewport coordinates
@@ -349,17 +370,25 @@
 									} );
 			$( this.element ).append( d );
 		}
-		else if( jQuery.type( this.options.dropper ) === 'string' ) {
+		else {
 			d = $( this.options.dropper );
-			if( d.parent().hasClass( this.options.dropperWrapClass ) ) {
-				$( this.element ).append( d.parent().css( 'position', 'relative' ) );
-			} else 
-				$( this.element ).append( d.css( { "position" : "relative" } ) );
-		} else if( this.options.dropper instanceof jQuery ) {
-			if( d.parent().hasClass( this.options.dropperWrapClass ) ) {
-				$( this.element ).append( d.parent().css( 'position', 'relative' ) );
-			} else {
-				d = this.options.dropper.css( { "position" : "absolute" } );
+			/**
+			 * If the dropper is directly referred as an image,
+			 * remove margin/padding that could be inherited by page layout 
+			 */
+			if( d.is( "img" ) ) d.css( { "margin": "0", "padding" : "0" } );
+
+			if( jQuery.type( this.options.dropper ) === 'string' ) {
+				if( d.parent().hasClass( this.options.dropperWrapClass ) ) {
+					$( this.element ).append( d.parent().css( 'position', 'relative' ) );
+				} else 
+					$( this.element ).append( d.css( { "position" : "relative" } ) );
+			} else if( this.options.dropper instanceof jQuery ) {
+				if( d.parent().hasClass( this.options.dropperWrapClass ) ) {
+					$( this.element ).append( d.parent().css( 'position', 'relative' ) );
+				} else {
+					d = this.options.dropper.css( { "position" : "absolute" } );
+				}
 			}
 		}
 		
@@ -383,7 +412,7 @@
 				
 				var wrap = $( '<div class="' + this.options.dropperWrapClass + '">' );
 				if( this.options.dropperWrapClass == 'gmuiWrapClass' )
-					wrap.css( { 'background-image' : 'url( images/gmCircle.png )',
+					wrap.css( { 'background-image' : 'url( /images/gmCircle.png )',
 											   'width' : '60px',
 											   'height' : '56px' } );
 				d.wrap( wrap ).position( {
@@ -491,7 +520,7 @@
 			dropperWrap: true,
 			dropperWrapClass: 'gmuiWrapClass',
 			type: "ROADMAP",
-			defaultMarker: 'images/default_marker.png',
+			defaultMarker: '/images/default_marker.png',
 			addMarkerShadow: false,
 			singleMarker: false
 		};
@@ -544,6 +573,10 @@
 		this.map.setCenter( myLatLng );	
 	};
 	
+	/**
+	 * Get all map markers
+	 * @returns list of Google Map's marker objects
+	 */
 	gmUserInput.prototype.getMarkers = function() {
 		return this.gmMarkers;
 	};
@@ -595,6 +628,22 @@
 					 coords: new google.maps.LatLng( marker.lat, marker.lon ),
 					 loc: ( typeof marker.loc !== 'undefined' ? marker.loc : null )
 					 } );
+	};
+	
+	/**
+	 * Removes a marker from the map & plugin marker's list
+	 * @param Google Map's marker object or marker internal id
+	 * @returns true if the marker has been found and removed
+	 */
+	gmUserInput.prototype.removeMarker = function( marker ) {
+		var id = null;
+		if( typeof marker === 'string' ) {
+			id = marker;
+		} else if ( typeof marker.item !== 'undefined' &&
+					typeof marker.item.uid !== 'undefined' ) {
+			id = marker.item.uid;
+		}
+		return _removeMarkerById.call( this, id );
 	};
 	
     $.fn[ pluginName ] = function ( options ) {
