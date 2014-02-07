@@ -231,10 +231,10 @@
         		<td>null</td>
         		<td>
         			Represents the element ( marker ) that will be used to gather user input.
-        			It can be:
-        			- null, so the default marker will be displayed
-        			- string, that should correspond to a jQuery selector
-        			- object, i.e., the result of a jQuery selection 
+        			It can be:<br/>
+        			- null, so the default marker will be displayed<br/>
+        			- string, that should correspond to a jQuery selector<br/>
+        			- object, i.e., the result of a jQuery selection<br/>
         		</td>
         	</tr>
         	<tr>
@@ -347,6 +347,17 @@
         <h4 id="addMarkers">addMarkers</h4>
         <p>
         	Adds a list of marker to the map. Each marker in the list must be a javascript object as described in method <i><a href="#addMarker">addMarker</a></i>. 
+        </p>
+        <h4 id="removeMarker">removeMarker</h4>
+        <p>
+        	Removes a marker from the map.
+        </p>
+        <p>
+        	Parameters: the reference to the marker as
+        	<ul>
+        		<li><i>string</i>: plugin's internal id of the marker.</li>
+        		<li><i>object</i>: a Google Map's marker object</li>
+        	</ul>
         </p>
         <h2 id="Events">Events</h2>
         <p>
