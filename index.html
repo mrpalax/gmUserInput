@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="jQuery Plugin For User Input with Google Maps" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/example.css">
+	<script type="text/javascript" src="javascripts/jquery-1.8.3.min.js"></script>
+	<script type="text/javascript" src="javascripts/jquery-ui-1.9.2.custom.min.js"></script>
+	<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true&libraries=places"></script>
+	<script type="text/javascript" src="javascripts/jquery.formalize.min.js"></script>
+	<script type="text/javascript" src="javascripts/jquery.gmuserinput.js"></script>
+
+    <title>gmUserInput</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/mrpalax/gmUserInput">View on GitHub</a>
+
+          <h1 id="project_title">gmUserInput</h1>
+          <h2 id="project_tagline">A jQuery plugin for user input with Google Maps</h2>
+
+          <section id="downloads">
+            <a class="zip_download_link" href="https://github.com/mrpalax/gmUserInput/archive/master.zip">Download this project as a .zip file</a>
+            <a class="tar_download_link" href="#">Download this project as a tar.gz file</a>
+          </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h2 id="dependencies">Dependencies</h2>
+        <ul>
+        	<li><b>jQuery 1.8.3</b> ( 1.7.2 can be used if removed offset in <i>position()</i> )</li>
+        	<li><b>jQuery UI 1.9.2</b> for drag&amp;drop</li>
+        	<li>Google Maps JavaScript API with places</li>
+        </ul>
+
+        <pre>
+        	<code>
+&lt;script type="text/javascript" src="javascripts/jquery-1.8.3.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="javascripts/jquery-ui-1.9.2.custom.min.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true&libraries=places"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="javascripts/jquery.formalize.min.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="javascripts/jquery.gmuserinput.js"&gt;&lt;/script&gt;
+			</code>
+		</pre>
+
+        <h2 id="plugin_setup">Plugin setup</h2>
+        <p>
+        	The principle of the plugin is very simple, it will display the user a google maps with a default marker. The user
+        	will then be able to drop the marker in the desired location. 
+        </p>
+        <pre>
+        	<code>
+&hellip;        	
+&lt;div id="myMap" style="height: 400px; width: 800px;"&gt;&lt;/div&gt;
+&hellip;
+&lt;script&gt;
+    $( '#myMap' ).gmUserInput();
+&lt;script&gt;
+			</code>
+		</pre>
+		<p>
+			If you run this code <i>as is</i> you will get a pretty dumb result, in fact you will not be able to see the result of user interaction with the map, so let's develop further.
+		</p>
+        <h2 id="user_input">Gathering user input</h2>
+        <p>
+        	Upon user inteaction with the map, mainly dropping the draggable marker into the map to add new locations, the plugin triggers following events:
+        	<ul>
+        		<li><em>markeradded</em>: when the user drops the droppable marker in the map. </li>
+        		<li><em>markerlocated</em>: when the plugin has geolocated a marker that has just been added to the map. </li>
+        		<li><em>markerselected</em>: when the user selects a marker that has been previously added to the map. </li>
+        	</ul>
+        </p>
+        <p>
+        	The callback registering to these events, will receive the corresponding marker as input, in field <em>data.marker</em>. Additionally 
+        	the <em>'makerlocated'</em> callback will receive the location details in field <em>data.details</em> in <a href="https://developers.google.com/maps/documentation/javascript/3.exp/reference#GeocoderResult">Google's Geocoder result format</a>. 
+        </p>
+        <h2 id="map_mobility">Mobility through the map</h2>
+        <p>
+        	You can initialize the map to be centered on a given point in the map ( see <em>center</em> option in <a href="#options">Options</a> section below ). The map will display
+        	 usual map controls for the user to freely move around the map. 
+        </p>
+        <p>
+        	To simplify this mobility, you may want to provide a way for the user to directly type in the name of a country, city, street, etc... the same way Google maps web page provides.
+        </p>
+        <p>
+        	In the plugin, this can be achieved with the option <em>search</em> ( false by default ). If set to boolean value <em>true</em>, the plugin will add an autocomplete search box for the user to freely navigate 
+        	the map through keyboard input. 
+        </p>
+        <h2 id="basic_example">Basic example</h2>
+        <p>
+        	So with this basic knowledge of the plugin behavior, we can already build up a basic map input plugin:
+        </p>
+        <pre>
+        	<code>
+&hellip;        	
+&lt;div id="myMap" style="height: 400px; width: 830px;"&gt;&lt;/div&gt;
+&lt;div id="userInput" style="font-weight: bold;"&gt;&lt;/div&gt;
+&hellip;
+&lt;script&gt;
+    $( '#myMap' ).gmUserInput( { search: true } );
+    $( '#userInput' ).bind( 'markerlocated', function( evt, data ) {
+        if( typeof data !== 'undefined' &&
+            typeof data.marker !== 'undefined' &&
+            typeof data.marker.item !== 'undefined' ) {
+				$( '#Example1Input' ).css( 'color', '#00ff00' )
+                   .text( "LOCATED: " + data.details.formatted_address );
+        }
+    } );
+    $( '#userInput' ).bind( 'markerselected', function( evt, data ) {
+        if( typeof data !== 'undefined' &&
+            typeof data.marker !== 'undefined' &&
+            typeof data.marker.item !== 'undefined' ) {
+        	$( '#Example1Input' ).css( 'color', '#4096EE' )
+                   .text( "SELECTED: " + data.marker.item.details.formatted_address );
+        }
+    } );
+&lt;script&gt;
+			</code>
+		</pre>
+		<p>
+			So now you can drag &amp; drop the marker in map, use the search box to find places, and select already dropped markers to 
+			see the plugin output. Note that if you relocate an already dropped marker, the plugin will trigger a new <em>markerlocated</em> event. 
+		</p>
+			<div id="Example1Map" style="height: 400px; width: 830px;"></div>
+			<div id="Example1Input" style="font-weight: bold; text-align: center; padding: 6px 24px; background-color: #36393D; color: #fff;">
+				Example 1 output
+			</div>
+		<p style="font-size: 14px; color: #000;">
+			Note that Google's Map strange display, it is due to this page's layout template ( image borders, shadow, etc... ). It should not 
+			be the case when applying this plugin into your own layouts. 
+		</p>
+        <h2 id="customizing_plugin">Customizing the plugin</h2>
+        <p>
+        	This example shows you how to personalize the plugin to use your own custom markers.
+        </p>
+        <pre>
+        	<code>
+&hellip;
+/** css **/
+.myCustomMarkerBackground {
+    width: 60px;
+    height: 60px;
+    background-color: rgba( 255, 255, 255, 0.7 );
+    border-radius: 7px;
+    -moz-border-radius: 7px;
+    border: 1px solid #fff;
+}
+&hellip;
+&lt;img id="myMarker" src="images/bus_stop.png"&gt;&lt;/img&gt;
+&lt;div id="myMap" style="height: 400px; width: 830px;"&gt;&lt;/div&gt;
+&hellip;
+&lt;script&gt;
+    $( '#myMap' ).gmUserInput( { search: true, 
+                                 dropper: '#myMarker',
+                                 dropperTitle: 'Place the bus stops',
+                                 center: [ 43.699899, 7.277663 ],
+                                 dropperWrapClass: 'myCustomMarkerBackground',
+                                 addMarkerShadow: true,
+                                 zoom: 14 } );
+&lt;script&gt;
+			</code>
+		</pre>
+		    <img id="myMarker" src="images/bus_stop.png" style="border: none; box-shadow: none;"></img>
+			<div id="Example2Map" style="height: 400px; width: 830px;"></div>
+			<div id="Example2Input" style="font-weight: bold; text-align: center; padding: 6px 24px; background-color: #36393D; color: #fff;">
+				Example 2 output
+			</div>
+		<p style="font-size: 14px; color: #000;">
+			Note that again, as the marker is an <i>img</i> element and therefore impacted by this page's global styling to images. If you see 
+			the marker out of its background, just reload the page and it should be put in the correct place.
+		</p>
+		<h3 id="shadow_icon">
+			Add shadow to your icon marker
+		</h3>
+        <p>
+        	With the option <em>addMarkerShadow</em> set to <i>true</i>, when the user drops the marker in the map, the plugin will replace the icon image with the shadowed version. For that, 
+        	the plugin will replace the URL of your icon <em>'myicon.png'</em> with <em>'myicon_shadow.png'</em>, so ensure that the corresponding resource is available.
+		</p>
+		<p>        	
+        	The same way, the plugin will replace the shadowed icon by the original one 
+        	when replacing the marker in the map.
+        </p>
+        <h3 id="customizing_container">
+        	Customizing the marker container
+        </h3>
+		<p>
+			As seen in previous example, you can provide a custom class for your marker's background. In such case, the wrapper around the marker 
+			will take this class so you can style it at will.	         	
+        </p>
+        
+        <h2 id="options">Options</h2>
+        <table>
+        	<tr>
+        		<th>Option</th>
+        		<th>Default</th>
+        		<th>Description</th>
+        	</tr>
+        	<tr>
+        		<td><em>zoom</em></td>
+        		<td>15</td>
+        		<td>The zoom level to apply to the map</td>
+        	</tr>
+        	<tr>
+        		<td><em>fullscreen</em></td>
+        		<td>false</td>
+        		<td>If <i>true</i>, the map will be displayed occupying the full browser viewport. <a href="fullscreen.html">Example</a></td>
+        	</tr>
+        	<tr>
+        		<td><em>search</em></td>
+        		<td>false</td>
+        		<td>If <i>true</i>, the plugin will add a autocomplete search box to the map.</td>
+        	</tr>
+        	<tr>
+        		<td><em>center</em></td>
+        		<td>[ 43.540289, <br/>-5.653692 ]</td>
+        		<td>[ latitude, longitude ] to center the map when it is first displayed to the user.</td>
+        	</tr>
+        	<tr>
+        		<td><em>dropper</em></td>
+        		<td>null</td>
+        		<td>
+        			Represents the element ( marker ) that will be used to gather user input.
+        			It can be:<br/>
+        			- null, so the default marker will be displayed<br/>
+        			- string, that should correspond to a jQuery selector<br/>
+        			- object, i.e., the result of a jQuery selection<br/>
+        		</td>
+        	</tr>
+        	<tr>
+        		<td><em>dropperTitle</em></td>
+        		<td>Drop me in <br/>the map</td>
+        		<td>The message to add in the <i>title</i> attribute of the droppable element, if supported.</td>
+        	</tr>
+        	<tr>
+        		<td><em>dropperWrap</em></td>
+        		<td>true</td>
+        		<td>
+        			Set to <i>false</i> if you don't want your droppable element to be wrapped by a container. To allow styling of this containing wrapper,
+        			you can specify your own wrapper class with option <em>dropperWrapClass</em>. 
+        		</td>
+        	</tr>
+        	<tr>
+        		<td><em>dropperWrapClass</em></td>
+        		<td>gmuiWrapClass</td>
+        		<td>The class to apply to the container wrapping the droppable element(s)</td>
+        	</tr>
+        	<tr>
+        		<td><em>type</em></td>
+        		<td>ROADMAP</td>
+        		<td>The default map type. Available options are:  ROADMAP, SATELLITE, HYBRID, TERRAIN. Any other value will default the map to ROADMAP</td>
+        	</tr>
+        	<tr>
+        		<td><em>defaultMarker</em></td>
+        		<td>images/default_marker.png</td>
+        		<td>The icon to be used as the droppable marker. By default, it will be the same icon added to the map each time it is dropped. To add
+        		modify the actual icon that is placed in the map, see option <em>addMarkerShadow</em></td>
+        	</tr>
+        	<tr>
+        		<td><em>addMarkerShadow</em></td>
+        		<td>false</td>
+        		<td>When the user drops a droppable marker in the map, if this option is set to <i>true</i>, the icon of the marker added to the map 
+        		will be replaces by <i>&lt;defaultMarker&gt;_shadow&lt;extension&gt;</i>. For example 'images/default_marker.png' will be replaced by 
+        		'images/default_marker_shadow.png'</td>
+        	</tr>
+        	<tr>
+        		<td><em>singleMarker</em></td>
+        		<td>false</td>
+        		<td>If set to <i>true</i>, the plugin will allow the user to drop the droppable marker only once in the map. Note that once dropped, the 
+        		user will still be able to relocate it around.</td>
+        	</tr>
+        </table>
+        <h2 id="public_methods">Public methods</h2>
+        <h3>Accesing the plugin's public methods</h3>
+        <p>
+        	Once instantiated, the plugin will store a self reference into the container's data, in field 'gmUserInput'. So, to retrieve 
+        	the plugin in order to access it's public methods, you can do:
+        	<pre>
+        		<code>
+&lt;script&gt;
+    $( '#myMap' ).data( 'gmUserInput' ).<i>publicMethod()</i>;
+&lt;script&gt;
+        		</code>
+        	</pre> 
+        </p>
+        <h4 id="centerMapInMarker">centerMapInMarker</h4>
+        <p>
+        	Centers the map in the coordinates of the provided marker.
+        </p>
+        <p>
+        	Parameters:
+        	<ul>
+        		<li><i>string</i>: plugin's internal id of the marker.</li>
+        		<li><i>Google Map's marker object</i>
+        	</ul>
+        </p>
+        <h4 id="centerMapInLatLon">centerMapInLatLon</h4>
+        <p>
+        	Centers the map in the latitude and longitude provided.
+        </p>
+        <p>
+        	Parameters:
+        	<ul>
+        		<li><i>latitude</i>: Latitude coordinate.</li>
+        		<li><i>longitude</i>: Longitude coordinate.</li>
+        	</ul>
+        </p>
+        <h4 id="getMarkers">getMarkers</h4>
+        <p>
+        	Returns the list user's input in the form of Google Map's marker objects. 
+        </p>
+        <h4 id="getMarkersAsItems">getMarkersAsItems</h4>
+        <p>
+        	Returns the list user's input in the form of javascript objects with following attributes: 
+        	<ul>
+        		<li><i>uid</i>: plugin's internal id of the marker.</li>
+        		<li><i>lat</i>: Latitude coordinate.</li>
+        		<li><i>lon</i>: Longitude coordinate.</li>
+        		<li><i>loc</i>: formatted address corresponding to the [lat,lon] coordinates.</li>
+        		<li><i>icon</i>: icon associated to the marker.</li>
+        	</ul>
+        </p>
+        <h4 id="addMarker">addMarker</h4>
+        <p>
+        	Adds a marker to the map. 
+        </p>
+        <p>
+        	Parameters: a javascript object with following attributes:
+        	<ul>
+        		<li><i>uid</i>: plugin's internal id of the marker.</li>
+        		<li><i>lat</i>: Latitude coordinate.</li>
+        		<li><i>lon</i>: Longitude coordinate.</li>
+        		<li><i>loc</i>: formatted address corresponding to the [lat,lon] coordinates.</li>
+        		<li><i>icon</i>: icon associated to the marker.</li>
+        	</ul>
+        </p>
+        <h4 id="addMarkers">addMarkers</h4>
+        <p>
+        	Adds a list of marker to the map. Each marker in the list must be a javascript object as described in method <i><a href="#addMarker">addMarker</a></i>. 
+        </p>
+        <h4 id="removeMarker">removeMarker</h4>
+        <p>
+        	Removes a marker from the map.
+        </p>
+        <p>
+        	Parameters: the reference to the marker as
+        	<ul>
+        		<li><i>string</i>: plugin's internal id of the marker.</li>
+        		<li><i>object</i>: a Google Map's marker object</li>
+        	</ul>
+        </p>
+        <h2 id="Events">Events</h2>
+        <p>
+        	These events are triggered in the plugin's container.
+        </p>
+        <p>
+        	The data provided to the callback data parameter is always a Google's Map marker object. The plugin always adds to this object a new attribute: <b><i>item</i></b>.
+        	This attribute is a javascript object with following attributes:
+			<ul>
+				<li><i>marker</i>: the Google Map's marker object</li>
+        		<li><i>lat</i>: Latitude coordinate.</li>
+        		<li><i>lon</i>: Longitude coordinate.</li>
+        		<li><i>loc</i>: formatted address corresponding to the [lat,lon] coordinates.</li>
+			</ul>
+        </p>
+        <p>
+        	Additionally, for <em>markerlocated</em> event, the plugin will provide the attribute <b><i>details</i></b> containing the geolocatization result in in <a href="https://developers.google.com/maps/documentation/javascript/3.exp/reference#GeocoderResult">Google's Geocoder result format</a>. 
+        </p>
+        <h3 id="markeradded">markeradded</h3>
+        <p>
+        	Triggered when the user drops the droppable marker in the map. Note that this event is triggered before <em>markerlocated</em>, so the attribute <i>marker.item.loc</i> will be missing.
+        </p>
+        <h3 id="markerlocated">markerlocated</h3>
+        <p>
+        	Triggered when the plugin has geolocated a marker that has just been added to the map. The data provided to the event callback 
+        	will contain the attribute <i><b>details</b></i> containing the geolocatization result in in <a href="https://developers.google.com/maps/documentation/javascript/3.exp/reference#GeocoderResult">Google's Geocoder result format</a>. 
+        </p>
+        <p>
+        	If the plugin fails to locate the marker, the attribute <i><b>details</b></i> will be <i>null</i> and the marker's associated address 
+        	in <i>marker.item.loc</i> will be set to <i>NO_ADDRESS_AVAILABLE</i>. 
+        <h3 id="markerselected">markerselected</h3>
+        <p>
+        	Triggered the user selects a marker that has been previously added to the map.
+        </p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+		<p>This project is maintained by <a href="http://github.com/mrpalax">mrpalax</a></p>      
+        <p class="copyright">Slate theme maintained by <a href="https://github.com/jsncostello">Jason Costello</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+	<script type="text/javascript">
+		$( '#Example1Map' ).gmUserInput( { search: true } );
+	    $( '#Example1Map' ).bind( 'markerlocated', function( evt, data ) {
+	        if( typeof data !== 'undefined' &&
+	            typeof data.marker !== 'undefined' &&
+	            typeof data.marker.item !== 'undefined' ) {
+					$( '#Example1Input' ).css( 'color', '#00ff00' ).text( "LOCATED: " + data.marker.item.loc );
+	        }
+	    } );
+	    $( '#Example1Map' ).bind( 'markerselected', function( evt, data ) {
+	        if( typeof data !== 'undefined' &&
+	            typeof data.marker !== 'undefined' &&
+	            typeof data.marker.item !== 'undefined' ) {
+	        	$( '#Example1Input' ).css( 'color', '#4096EE' ).text( "SELECTED: " + data.marker.item.loc );
+	        }
+	    } );
+	    
+	    $( '#Example2Map' ).gmUserInput( { search: true, 
+	    								   dropper: '#myMarker',
+	    								   dropperTitle: 'Place the bus stops',
+	    								   center: [ 43.699899, 7.277663 ],
+	    								   addMarkerShadow: true,
+	    								   dropperWrapClass: 'myCustomMarkerBackground',
+	    								   zoom: 14 } );
+	    $( '#Example2Map' ).bind( 'markerlocated', function( evt, data ) {
+	        if( typeof data !== 'undefined' &&
+	            typeof data.marker !== 'undefined' &&
+	            typeof data.marker.item !== 'undefined' ) {
+					$( '#Example2Input' ).css( 'color', '#00ff00' ).text( "LOCATED: " + data.marker.item.loc );
+	        }
+	    } );
+	    $( '#Example2Map' ).bind( 'markerselected', function( evt, data ) {
+	        if( typeof data !== 'undefined' &&
+	            typeof data.marker !== 'undefined' &&
+	            typeof data.marker.item !== 'undefined' ) {
+	        	$( '#Example2Input' ).css( 'color', '#4096EE' ).text( "SELECTED: " + data.marker.item.loc );
+	        }
+	    } );
+
+	</script>
+  </body>
+</html>
