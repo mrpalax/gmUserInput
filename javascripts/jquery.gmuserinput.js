@@ -412,7 +412,7 @@
 				
 				var wrap = $( '<div class="' + this.options.dropperWrapClass + '">' );
 				if( this.options.dropperWrapClass == 'gmuiWrapClass' )
-					wrap.css( { 'background-image' : 'url( /images/gmCircle.png )',
+					wrap.css( { 'background-image' : 'url( images/gmCircle.png )',
 											   'width' : '60px',
 											   'height' : '56px' } );
 				d.wrap( wrap ).position( {
@@ -520,7 +520,7 @@
 			dropperWrap: true,
 			dropperWrapClass: 'gmuiWrapClass',
 			type: "ROADMAP",
-			defaultMarker: '/images/default_marker.png',
+			defaultMarker: 'images/default_marker.png',
 			addMarkerShadow: false,
 			singleMarker: false
 		};
